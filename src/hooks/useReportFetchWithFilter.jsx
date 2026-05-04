@@ -1,37 +1,40 @@
 import { useEffect, useState } from "react";
 
-const useReportFetchWithFilter = (url) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const useReportFetchWithFilter = (baseUrl) => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [limit, setLimit] = useState(10);
 
-  useEffect(() => {
-    if (!url) return;
+    useEffect(() => {
+        if (!baseUrl) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
 
-      try {
-        const res = await fetch(url);
+            try {
+                const url = `${baseUrl}?_limit=${limit}`;
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch data");
-        }
+                const res = await fetch(url);
 
-        const result = await res.json();
-        setData(result);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    };
+                if (!res.ok) {
+                    throw new Error("Failed to fetch data");
+                }
 
-    fetchData();
-  }, [url]);
+                const result = await res.json();
+                setData(result);
+            } catch (err) {
+                setError(err.message || "Something went wrong");
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  return { data, loading, error };
+        fetchData();
+    }, [baseUrl, limit]);
+
+    return { data, loading, error };
 };
 
 export default useReportFetchWithFilter;
