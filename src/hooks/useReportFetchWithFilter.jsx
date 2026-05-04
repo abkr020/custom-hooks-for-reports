@@ -34,7 +34,27 @@ const useReportFetchWithFilter = (baseUrl) => {
         fetchData();
     }, [baseUrl, limit]);
 
-    return { data, loading, error };
+    // ✅ Renderable component inside hook
+    const InpurLimitComponent = () => {
+        return (
+            <div>
+                {/* LIMIT CONTROL */}
+                <div style={{ marginBottom: "20px" }}>
+                    <label>Limit: </label>
+                    <input
+                        type="number"
+                        value={limit}
+                        min={1}
+                        max={100}
+                        onChange={(e) => setLimit(Number(e.target.value))}
+                    />
+                </div>
+
+            </div>
+        );
+    };
+
+    return { data, loading, error, InpurLimitComponent };
 };
 
 export default useReportFetchWithFilter;
