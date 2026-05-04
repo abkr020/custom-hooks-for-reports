@@ -4,7 +4,7 @@ const useReportFetchWithFilter = (baseUrl) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [limit, setLimit] = useState(10);
+    const [limit, setLimit] = useState(2);
 
     useEffect(() => {
         if (!baseUrl) return;
