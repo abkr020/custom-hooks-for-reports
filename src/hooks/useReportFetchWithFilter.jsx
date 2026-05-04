@@ -5,6 +5,7 @@ const useReportFetchWithFilter = (baseUrl) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [limit, setLimit] = useState(2);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         if (!baseUrl) return;
@@ -14,7 +15,11 @@ const useReportFetchWithFilter = (baseUrl) => {
             setError(null);
 
             try {
-                const url = `${baseUrl}?_limit=${limit}`;
+                let url = `${baseUrl}?_limit=${limit}`;
+
+                if (search.trim()) {
+                    url += `&q=${search}`;
+                }
 
                 const res = await fetch(url);
 
@@ -32,7 +37,7 @@ const useReportFetchWithFilter = (baseUrl) => {
         };
 
         fetchData();
-    }, [baseUrl, limit]);
+    }, [baseUrl, limit, search]);
 
     // ✅ Renderable component inside hook
     const InpurLimitComponent = () => {
@@ -54,7 +59,21 @@ const useReportFetchWithFilter = (baseUrl) => {
         );
     };
 
-    return { data, loading, error, InpurLimitComponent };
+    // ✅ SEARCH UI FUNCTION (your request)
+    const RenderSearchInputComponent = () => {
+        return (
+            <div style={{ marginTop: "10px", marginBottom: "20px" }}>
+                <label>Search: </label>
+                <input
+                    type="text"
+                    value={search}
+                    placeholder="search..."
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
+        );
+    };
+    return { data, loading, error, InpurLimitComponent, RenderSearchInputComponent };
 };
 
 export default useReportFetchWithFilter;

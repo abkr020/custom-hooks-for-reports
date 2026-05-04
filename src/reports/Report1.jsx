@@ -3,13 +3,22 @@ import useReportFetchWithFilter from '../hooks/useReportFetchWithFilter';
 
 const Report1 = () => {
   const url = "https://jsonplaceholder.typicode.com/posts";
-  const { data, loading, error, InpurLimitComponent } = useReportFetchWithFilter(url);
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  const { data, loading, error, InpurLimitComponent,RenderSearchInputComponent } = useReportFetchWithFilter(url);
+
   return (
     <div>
       report 1
-      <InpurLimitComponent />
+   
+        {/* inputs ALWAYS visible */}
+      {InpurLimitComponent()}
+      {RenderSearchInputComponent()}
+
+      {/* loading indicator (non-blocking) */}
+      {loading && <p style={{ color: "blue" }}>Loading...</p>}
+
+      {/* error */}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
 
       {data?.map((item) => (
         <div key={item.id} style={{ marginBottom: "10px" }}>
