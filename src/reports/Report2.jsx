@@ -3,56 +3,56 @@ import useReportFetchWithFilter from "../hooks/useReportFetchWithFilter";
 import CustomTable from "../components/CustomTable";
 import ReportWrapper from "../components/ReportWrapper";
 
+export const userTableColumns = [
+    {
+        header: "ID",
+        accessor: "id",
+    },
+    {
+        header: "Full Name",
+        children: [
+            {
+                header: "First Name",
+                accessor: "firstName",
+            },
+            {
+                header: "Last Name",
+                accessor: "lastName",
+            },
+        ],
+    },
+    {
+        header: "Age",
+        accessor: "age",
+    },
+    {
+        header: "Email",
+        accessor: "email",
+    },
+    {
+        header: "Phone",
+        accessor: "phone",
+    },
+    {
+        header: "City",
+        accessor: "address.city", // ✅ nested support
+    },
+    {
+        header: "Company",
+        accessor: "company.name",
+    },
+    {
+        header: "Role",
+        accessor: "role",
+    },
+];
+export const usersUrl = "https://dummyjson.com/users";
 const Report2 = () => {
-    const userTableColumns = [
-        {
-            header: "ID",
-            accessor: "id",
-        },
-        {
-            header: "Full Name",
-            children: [
-                {
-                    header: "First Name",
-                    accessor: "firstName",
-                },
-                {
-                    header: "Last Name",
-                    accessor: "lastName",
-                },
-            ],
-        },
-        {
-            header: "Age",
-            accessor: "age",
-        },
-        {
-            header: "Email",
-            accessor: "email",
-        },
-        {
-            header: "Phone",
-            accessor: "phone",
-        },
-        {
-            header: "City",
-            accessor: "address.city", // ✅ nested support
-        },
-        {
-            header: "Company",
-            accessor: "company.name",
-        },
-        {
-            header: "Role",
-            accessor: "role",
-        },
-    ];
-    const url = "https://dummyjson.com/users";
     // const url = "https://dummy.restapiexample.com/api/v1/employees";
 
     const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, reportWrapperItems } =
         useReportFetchWithFilter({
-            baseUrl: url,
+            baseUrl: usersUrl,
             columns: userTableColumns,
         });
 
