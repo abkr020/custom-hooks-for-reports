@@ -1,6 +1,7 @@
 import React from 'react'
 import useReportFetchWithFilter from '../hooks/useReportFetchWithFilter';
 import CustomTable from '../components/CustomTable';
+import ReportWrapper from '../components/ReportWrapper';
 
 const Report1 = () => {
   const productTableolumns = [
@@ -64,28 +65,24 @@ const Report1 = () => {
     },
   ];
   const url = "https://dummyjson.com/products";
-  const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent } = useReportFetchWithFilter(url);
+  const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent,allFilters } = useReportFetchWithFilter(url);
   console.log("data--", data);
 
   return (
     <div style={{ border: "2px solid tomato" }}>
-      <h2>Report 1 (Products)</h2>
 
-      {/* inputs ALWAYS visible */}
-      {InpurLimitComponent()}
-      {RenderSearchInputComponent()}
+      <ReportWrapper
+        title="Report 2 (Products)"
+        filters={allFilters}
+        loading={loading}
+        error={error}
+      >
 
-      {/* loading indicator (non-blocking) */}
-      {loading && <p style={{ color: "blue" }}>Loading...</p>}
-
-      {/* error */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-
-      <CustomTable
-        columns={productTableolumns}
-        data={data?.products}
-      />
+        <CustomTable
+          columns={productTableolumns}
+          data={data?.products}
+        />
+      </ReportWrapper>
     </div>
   )
 }

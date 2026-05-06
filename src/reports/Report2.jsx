@@ -1,6 +1,7 @@
 import React from "react";
 import useReportFetchWithFilter from "../hooks/useReportFetchWithFilter";
 import CustomTable from "../components/CustomTable";
+import ReportWrapper from "../components/ReportWrapper";
 
 const Report2 = () => {
     const userTableColumns = [
@@ -49,7 +50,7 @@ const Report2 = () => {
     const url = "https://dummyjson.com/users";
     // const url = "https://dummy.restapiexample.com/api/v1/employees";
 
-    const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent } =
+    const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,allFilters } =
         useReportFetchWithFilter(url);
 
     console.log("data", data);
@@ -57,19 +58,17 @@ const Report2 = () => {
 
     return (
         <div style={{ border: "2px solid tomato" }}>
-            <h2>Report 2 (Users)</h2>
-
-            {InpurLimitComponent()}
-            {RenderSearchInputComponent()}
-            {PaginationComponent()}
-            {/* loading indicator (non-blocking) */}
-            {loading && <p style={{ color: "blue" }}>Loading...</p>}
-
-            {/* error */}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-
-
-            <CustomTable columns={userTableColumns} data={data?.users} />
+            <ReportWrapper
+                title="Report 2 (Users)"
+                filters={allFilters}
+                loading={loading}
+                error={error}
+            >
+                <CustomTable
+                    columns={userTableColumns}
+                    data={data?.users}
+                />
+            </ReportWrapper>
         </div>
     );
 };

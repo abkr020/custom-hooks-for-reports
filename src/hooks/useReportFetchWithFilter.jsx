@@ -48,7 +48,7 @@ const useReportFetchWithFilter = (baseUrl) => {
         return (
             <div>
                 {/* LIMIT CONTROL */}
-                <div style={{ marginBottom: "20px" }}>
+                <div >
                     <label>Limit: </label>
                     <input
                         type="number"
@@ -87,7 +87,7 @@ const useReportFetchWithFilter = (baseUrl) => {
     // ✅ SEARCH UI FUNCTION (your request)
     const RenderSearchInputComponent = () => {
         return (
-            <div style={{ marginTop: "10px", marginBottom: "20px" }}>
+            <div>
                 <label>Search: </label>
                 <input
                     type="text"
@@ -100,6 +100,9 @@ const useReportFetchWithFilter = (baseUrl) => {
     };
     return {
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
+        allFilters: {
+            InpurLimitComponent, RenderSearchInputComponent, PaginationComponent
+        }
     };
 };
 
