@@ -5,6 +5,7 @@ const useReportFetchWithFilter = (baseUrl) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [limit, setLimit] = useState(2);
+    const [skip, setSkip] = useState(0); // 👈 pagination
     const [search, setSearch] = useState("");
 
     useEffect(() => {
@@ -15,10 +16,13 @@ const useReportFetchWithFilter = (baseUrl) => {
             setError(null);
 
             try {
-                let url = `${baseUrl}?_limit=${limit}`;
+                let url = "";
 
+                // ✅ SWITCH ENDPOINT BASED ON SEARCH
                 if (search.trim()) {
-                    url += `&q=${search}`;
+                    url = `${baseUrl}/search?q=${search}&limit=${limit}&skip=${skip}`;
+                } else {
+                    url = `${baseUrl}?limit=${limit}&skip=${skip}`;
                 }
 
                 const res = await fetch(url);
@@ -37,7 +41,7 @@ const useReportFetchWithFilter = (baseUrl) => {
         };
 
         fetchData();
-    }, [baseUrl, limit, search]);
+    }, [baseUrl, limit, skip, search]);
 
     // ✅ Renderable component inside hook
     const InpurLimitComponent = () => {
@@ -58,7 +62,28 @@ const useReportFetchWithFilter = (baseUrl) => {
             </div>
         );
     };
+    // ✅ PAGINATION CONTROLS
+    const PaginationComponent = () => (
+        <div style={{ marginTop: "20px" }}>
+            <button
+                disabled={skip === 0}
+                onClick={() => setSkip((prev) => Math.max(prev - limit, 0))}
+            >
+                Prev
+            </button>
 
+            <span style={{ margin: "0 10px" }}>
+                Page: {Math.floor(skip / limit) + 1}
+            </span>
+
+            <button
+                disabled={skip + limit >= (data?.total || 0)}
+                onClick={() => setSkip((prev) => prev + limit)}
+            >
+                Next
+            </button>
+        </div>
+    );
     // ✅ SEARCH UI FUNCTION (your request)
     const RenderSearchInputComponent = () => {
         return (
@@ -73,7 +98,9 @@ const useReportFetchWithFilter = (baseUrl) => {
             </div>
         );
     };
-    return { data, loading, error, InpurLimitComponent, RenderSearchInputComponent };
+    return {
+        data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
+    };
 };
 
 export default useReportFetchWithFilter;
