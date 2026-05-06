@@ -65,7 +65,10 @@ const Report1 = () => {
     },
   ];
   const url = "https://dummyjson.com/products";
-  const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent,allFilters } = useReportFetchWithFilter(url);
+  const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, reportWrapperItems } = useReportFetchWithFilter({
+    baseUrl: url,
+    columns: productTableolumns,
+  });
   console.log("data--", data);
 
   return (
@@ -73,7 +76,7 @@ const Report1 = () => {
 
       <ReportWrapper
         title="Report 2 (Products)"
-        filters={allFilters}
+        reportWrapperItems={reportWrapperItems}
         loading={loading}
         error={error}
       >

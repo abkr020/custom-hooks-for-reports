@@ -50,8 +50,11 @@ const Report2 = () => {
     const url = "https://dummyjson.com/users";
     // const url = "https://dummy.restapiexample.com/api/v1/employees";
 
-    const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,allFilters } =
-        useReportFetchWithFilter(url);
+    const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, reportWrapperItems } =
+        useReportFetchWithFilter({
+            baseUrl: url,
+            columns: userTableColumns,
+        });
 
     console.log("data", data);
 
@@ -60,7 +63,7 @@ const Report2 = () => {
         <div style={{ border: "2px solid tomato" }}>
             <ReportWrapper
                 title="Report 2 (Users)"
-                filters={allFilters}
+                reportWrapperItems={reportWrapperItems}
                 loading={loading}
                 error={error}
             >

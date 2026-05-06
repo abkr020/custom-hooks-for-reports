@@ -2,7 +2,7 @@ import React from "react";
 
 const ReportWrapper = ({
   title,
-  filters,
+  reportWrapperItems,
   loading,
   error,
   children,
@@ -13,8 +13,12 @@ const ReportWrapper = ({
 
       {/* FILTERS SECTION */}
       <div style={{ marginBottom: "15px" , display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem"}}>
-        {filters?.InpurLimitComponent?.()}
-        {filters?.RenderSearchInputComponent?.()}
+        {reportWrapperItems?.InpurLimitComponent?.()}
+        {reportWrapperItems?.RenderSearchInputComponent?.()}
+           {/* ✅ EXPORT BUTTON */}
+        <button onClick={reportWrapperItems?.exportToExcel} >
+          Download Excel
+        </button>
       </div>
 
       {/* LOADING */}
@@ -25,7 +29,7 @@ const ReportWrapper = ({
 
       {/* TABLE / CONTENT */}
       {children}
-      {filters?.PaginationComponent?.()}
+      {reportWrapperItems?.PaginationComponent?.()}
     </div>
   );
 };

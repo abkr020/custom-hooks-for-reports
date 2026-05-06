@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { getLeafColumns, getValue } from "../components/CustomTable";
 
-const useReportFetchWithFilter = (baseUrl) => {
+const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -42,6 +43,59 @@ const useReportFetchWithFilter = (baseUrl) => {
 
         fetchData();
     }, [baseUrl, limit, skip, search]);
+
+    const exportToExcel = async () => {
+        try {
+            let url = "";
+
+            // 🔥 ignore pagination
+            if (search.trim()) {
+                url = `${baseUrl}/search?q=${search}&limit=0`;
+            } else {
+                url = `${baseUrl}?limit=0`;
+            }
+
+            const res = await fetch(url);
+            const result = await res.json();
+
+            const rows = result.users || result.products || result;
+
+            // 🔥 reuse table structure
+            const leafColumns = getLeafColumns(columns);
+
+            const headers = leafColumns.map((col) => col.header);
+
+            const csvRows = [
+                headers.join(","),
+                ...rows.map((row) =>
+                    leafColumns
+                        .map((col) => {
+                            const value = col.accessor
+                                ? getValue(row, col.accessor)
+                                : col.render
+                                    ? col.render(row)
+                                    : "";
+                            return JSON.stringify(value ?? "");
+                        })
+                        .join(",")
+                ),
+            ];
+
+            const csv = csvRows.join("\n");
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const urlBlob = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = urlBlob;
+            a.download = "report-export.csv";
+            a.click();
+
+            window.URL.revokeObjectURL(urlBlob);
+        } catch (err) {
+            console.error("Export failed", err);
+        }
+    };
 
     // ✅ Renderable component inside hook
     const InpurLimitComponent = () => {
@@ -100,9 +154,10 @@ const useReportFetchWithFilter = (baseUrl) => {
     };
     return {
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
-        allFilters: {
-            InpurLimitComponent, RenderSearchInputComponent, PaginationComponent
-        }
+        reportWrapperItems: {
+            InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel
+        },
+        exportToExcel
     };
 };
 

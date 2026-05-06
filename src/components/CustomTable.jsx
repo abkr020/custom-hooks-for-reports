@@ -1,5 +1,17 @@
 import React from "react";
 
+// ✅ Flatten columns for body
+export const getLeafColumns = (cols) => {
+    return cols.flatMap((col) =>
+        col.children ? getLeafColumns(col.children) : col
+    );
+};
+
+// ✅ Get nested value safely
+export const getValue = (obj, path) => {
+    if (!path) return "";
+    return path.split(".").reduce((acc, key) => acc?.[key], obj);
+};
 const CustomTable = ({ columns, data }) => {
     // ✅ Get max depth of header tree
     const getMaxDepth = (cols) => {
@@ -40,23 +52,11 @@ const CustomTable = ({ columns, data }) => {
         return rows;
     };
 
-    // ✅ Flatten columns for body
-    const getLeafColumns = (cols) => {
-        return cols.flatMap((col) =>
-            col.children ? getLeafColumns(col.children) : col
-        );
-    };
-
-    // ✅ Get nested value safely
-    const getValue = (obj, path) => {
-        if (!path) return "";
-        return path.split(".").reduce((acc, key) => acc?.[key], obj);
-    };
 
     const maxDepth = getMaxDepth(columns);
     const headerRows = buildHeaderRows(columns, maxDepth);
     const leafColumns = getLeafColumns(columns);
-console.log("headerRows leafColumns",headerRows,leafColumns);
+    console.log("headerRows leafColumns", headerRows, leafColumns);
 
     return (
         <table
