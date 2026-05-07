@@ -50,7 +50,7 @@ export const usersUrl = "https://dummyjson.com/users";
 const Report2 = () => {
     // const url = "https://dummy.restapiexample.com/api/v1/employees";
 
-    const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, reportWrapperItems } =
+    const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, reportWrapperItems, handleSort, sortBy, sortOrder, } =
         useReportFetchWithFilter({
             baseUrl: usersUrl,
             columns: userTableColumns,
@@ -70,6 +70,9 @@ const Report2 = () => {
                 <CustomTable
                     columns={userTableColumns}
                     data={data?.users}
+                    handleSort={handleSort}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
                 />
             </ReportWrapper>
         </div>

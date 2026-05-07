@@ -8,7 +8,8 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     const [limit, setLimit] = useState(2);
     const [skip, setSkip] = useState(0); // 👈 pagination
     const [search, setSearch] = useState("");
-
+    const [sortBy, setSortBy] = useState("");
+    const [sortOrder, setSortOrder] = useState("asc");
     useEffect(() => {
         if (!baseUrl) return;
 
@@ -25,7 +26,10 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
                 } else {
                     url = `${baseUrl}?limit=${limit}&skip=${skip}`;
                 }
-
+                // ✅ add sorting
+                if (sortBy) {
+                    url += `&sortBy=${sortBy}&order=${sortOrder}`;
+                }
                 const res = await fetch(url);
 
                 if (!res.ok) {
@@ -42,7 +46,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
         };
 
         fetchData();
-    }, [baseUrl, limit, skip, search]);
+    }, [baseUrl, limit, skip, search,sortOrder,sortBy]);
 
     const exportToExcel = async () => {
         try {
@@ -96,7 +100,20 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             console.error("Export failed", err);
         }
     };
+    const handleSort = (column) => {
+        if (!column.accessor) return;
 
+        // same column clicked again
+        if (sortBy === column.accessor) {
+            setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortBy(column.accessor);
+            setSortOrder("asc");
+        }
+
+        // reset pagination
+        setSkip(0);
+    };
     // ✅ Renderable component inside hook
     const InpurLimitComponent = () => {
         return (
@@ -157,7 +174,10 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
         reportWrapperItems: {
             InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel
         },
-        exportToExcel
+        exportToExcel,
+        handleSort,
+        sortBy,
+        sortOrder,
     };
 };
 

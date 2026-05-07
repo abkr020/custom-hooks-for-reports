@@ -65,17 +65,17 @@ export const productTableolumns = [
 ];
 export const productsUrl = "https://dummyjson.com/products";
 const Report1 = () => {
-  const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, reportWrapperItems } = useReportFetchWithFilter({
-    baseUrl: productsUrl,
-    columns: productTableolumns,
-  });
+  const { data, loading, error, InpurLimitComponent, RenderSearchInputComponent, reportWrapperItems, handleSort,sortBy,sortOrder } = useReportFetchWithFilter({
+      baseUrl: productsUrl,
+      columns: productTableolumns,
+    });
   console.log("data--", data);
 
   return (
     <div style={{ border: "2px solid tomato" }}>
 
       <ReportWrapper
-        title="Report 2 (Products)"
+        title="Report 1 (Products)"
         reportWrapperItems={reportWrapperItems}
         loading={loading}
         error={error}
@@ -84,6 +84,9 @@ const Report1 = () => {
         <CustomTable
           columns={productTableolumns}
           data={data?.products}
+          handleSort={handleSort}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
         />
       </ReportWrapper>
     </div>

@@ -12,7 +12,7 @@ export const getValue = (obj, path) => {
     if (!path) return "";
     return path.split(".").reduce((acc, key) => acc?.[key], obj);
 };
-const CustomTable = ({ columns, data }) => {
+const CustomTable = ({ columns, data, handleSort, sortBy, sortOrder }) => {
     // ✅ Get max depth of header tree
     const getMaxDepth = (cols) => {
         return Math.max(
@@ -36,6 +36,7 @@ const CustomTable = ({ columns, data }) => {
         cols.forEach((col) => {
             const cell = {
                 header: col.header,
+                accessor: col.accessor, // ✅ important
                 colSpan: col.children
                     ? countLeafColumns(col.children)
                     : 1,
@@ -69,8 +70,16 @@ const CustomTable = ({ columns, data }) => {
                 {headerRows.map((row, i) => (
                     <tr key={i}>
                         {row.map((cell, j) => (
-                            <th key={`${cell.header}-${j}`} colSpan={cell.colSpan} rowSpan={cell.rowSpan}>
+                            <th key={`${cell.header}-${j}`} colSpan={cell.colSpan} rowSpan={cell.rowSpan}
+                                onClick={() => cell.accessor && handleSort(cell)}
+                                style={{
+                                    cursor: cell.accessor ? "pointer" : "default"
+                                }}
+                            >
                                 {cell.header}
+                                {/* sort icon */}
+                                {sortBy === cell.accessor &&
+                                    (sortOrder === "asc" ? " 🔼" : " 🔽")}
                             </th>
                         ))}
                     </tr>
