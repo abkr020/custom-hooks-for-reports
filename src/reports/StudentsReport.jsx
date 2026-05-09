@@ -62,7 +62,7 @@ export const studentTableColumns = [
     },
 ];
 
-export const studentsUrl = "http://localhost:8080/api/reports/students";
+export const studentsUrl = `${import.meta.env.VITE_BACKEND_URL}/reports/students`;
 
 const StudentsReport = () => {
 
@@ -86,12 +86,13 @@ const StudentsReport = () => {
             <ReportWrapper
                 title="Students Report"
                 reportWrapperItems={reportWrapperItems}
-                loading={loading}
+                // loading={loading}
                 error={error}
-            >
+                >
                 <CustomTable
                     columns={studentTableColumns}
                     data={data?.students}
+                    loading={loading}
                     handleSort={handleSort}
                     sortBy={sortBy}
                     sortOrder={sortOrder}

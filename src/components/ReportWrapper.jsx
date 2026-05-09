@@ -13,6 +13,8 @@ const ReportWrapper = ({
 
       {/* FILTERS SECTION */}
       <div style={{ marginBottom: "15px" , display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem"}}>
+        {reportWrapperItems?.ClassFilterComponent?.()}
+        {reportWrapperItems?.SectionFilterComponent?.()}
         {reportWrapperItems?.InpurLimitComponent?.()}
         {reportWrapperItems?.RenderSearchInputComponent?.()}
            {/* ✅ EXPORT BUTTON */}

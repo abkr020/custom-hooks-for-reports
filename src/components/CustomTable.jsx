@@ -12,7 +12,7 @@ export const getValue = (obj, path) => {
     if (!path) return "";
     return path.split(".").reduce((acc, key) => acc?.[key], obj);
 };
-const CustomTable = ({ columns, data, handleSort, sortBy, sortOrder }) => {
+const CustomTable = ({ columns, data, loading, handleSort, sortBy, sortOrder }) => {
     // ✅ Get max depth of header tree
     const getMaxDepth = (cols) => {
         return Math.max(
@@ -88,7 +88,16 @@ const CustomTable = ({ columns, data, handleSort, sortBy, sortOrder }) => {
 
             {/* ✅ BODY */}
             <tbody>
-                {data?.length > 0 ? (
+                {loading ? (
+                    <tr>
+                        <td
+                            colSpan={leafColumns.length}
+                            style={{ textAlign: "center" }}
+                        >
+                            Loading...
+                        </td>
+                    </tr>
+                ) : data?.length > 0 ? (
                     data.map((item) => (
                         <tr key={item.id || JSON.stringify(item)}>
                             {leafColumns.map((col, j) => (

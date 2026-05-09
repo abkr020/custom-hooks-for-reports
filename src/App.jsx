@@ -16,7 +16,7 @@ function App() {
       {/* <Report2 /> */}
       <StudentsReport />
       <MarksReport />
-      <Dashboard />
+      {/* <Dashboard /> */}
     </>
   )
 }

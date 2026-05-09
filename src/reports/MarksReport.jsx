@@ -65,7 +65,7 @@ export const marksTableColumns = [
 ];
 
 export const marksUrl =
-    "http://localhost:8080/api/reports/marks";
+    `${import.meta.env.VITE_BACKEND_URL}/reports/marks`;
 
 const MarksReport = () => {
 
@@ -89,12 +89,13 @@ const MarksReport = () => {
             <ReportWrapper
                 title="Marks Report"
                 reportWrapperItems={reportWrapperItems}
-                loading={loading}
+                // loading={loading}
                 error={error}
-            >
+                >
                 <CustomTable
                     columns={marksTableColumns}
                     data={data?.marks}
+                    loading={loading}
                     handleSort={handleSort}
                     sortBy={sortBy}
                     sortOrder={sortOrder}

@@ -10,6 +10,90 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("");
     const [sortOrder, setSortOrder] = useState("asc");
+    // ==============================
+    // CLASS + SECTION FILTERS
+    // ==============================
+
+    const [classes, setClasses] = useState([]);
+
+    const [sections, setSections] = useState([]);
+
+    const [selectedClass, setSelectedClass] = useState("");
+
+    const [selectedSection, setSelectedSection] = useState("");
+
+
+    // ==============================
+    // FETCH UNIQUE CLASSES
+    // ==============================
+    useEffect(() => {
+
+        const fetchClasses = async () => {
+
+            try {
+
+                const res = await fetch(
+                    "http://localhost:8080/api/reports/students/classes"
+                );
+
+                const result = await res.json();
+
+                setClasses(result.classes || []);
+
+            } catch (err) {
+
+                console.error(
+                    "Failed to fetch classes",
+                    err
+                );
+            }
+        };
+
+        fetchClasses();
+
+    }, []);
+
+
+    // ==============================
+    // FETCH SECTIONS BY CLASS
+    // ==============================
+    useEffect(() => {
+
+        if (!selectedClass) {
+
+            setSections([]);
+            setSelectedSection("");
+
+            return;
+        }
+
+        const fetchSections = async () => {
+
+            try {
+
+                const res = await fetch(
+                    `http://localhost:8080/api/reports/students/classes/${selectedClass}/sections`
+                );
+
+                const result = await res.json();
+
+                setSections(result.sections || []);
+
+            } catch (err) {
+
+                console.error(
+                    "Failed to fetch sections",
+                    err
+                );
+            }
+        };
+
+        fetchSections();
+
+    }, [selectedClass]);
+
+
+
     useEffect(() => {
         if (!baseUrl) return;
 
@@ -33,6 +117,15 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
                     params.append("sortBy", sortBy);
                     params.append("order", sortOrder);
                 }
+                // ✅ class filter
+                if (selectedClass) {
+                    params.append("class", selectedClass);
+                }
+
+                // ✅ section filter
+                if (selectedSection) {
+                    params.append("section", selectedSection);
+                }
 
                 const url = `${baseUrl}?${params.toString()}`;
 
@@ -52,7 +145,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
         };
 
         fetchData();
-    }, [baseUrl, limit, skip, search, sortOrder, sortBy]);
+    }, [baseUrl, limit, skip, search, sortOrder, sortBy, selectedClass, selectedSection,]);
 
     const exportToExcel = async () => {
         try {
@@ -68,7 +161,13 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
                 params.append("sortBy", sortBy);
                 params.append("order", sortOrder);
             }
+            if (selectedClass) {
+                params.append("class", selectedClass);
+            }
 
+            if (selectedSection) {
+                params.append("section", selectedSection);
+            }
             const url = `${baseUrl}?${params.toString()}`;
 
             const res = await fetch(url);
@@ -181,10 +280,98 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             </div>
         );
     };
+    // ==============================
+    // CLASS FILTER COMPONENT
+    // ==============================
+    const ClassFilterComponent = () => {
+
+        return (
+            <div>
+
+                <label>
+                    Class:
+                </label>
+
+                <select
+                    value={selectedClass}
+                    onChange={(e) => {
+
+                        setSelectedClass(
+                            e.target.value
+                        );
+
+                        // reset section
+                        setSelectedSection("");
+
+                        // reset pagination
+                        setSkip(0);
+                    }}
+                >
+
+                    <option value="">
+                        All Classes
+                    </option>
+
+                    {classes.map((cls) => (
+                        <option
+                            key={cls}
+                            value={cls}
+                        >
+                            {cls}
+                        </option>
+                    ))}
+
+                </select>
+            </div>
+        );
+    };
+    // ==============================
+    // SECTION FILTER COMPONENT
+    // ==============================
+    const SectionFilterComponent =
+        () => {
+
+            return (
+                <div>
+
+                    <label>
+                        Section:
+                    </label>
+
+                    <select
+                        value={selectedSection}
+                        disabled={!selectedClass}
+                        onChange={(e) => {
+
+                            setSelectedSection(
+                                e.target.value
+                            );
+
+                            setSkip(0);
+                        }}
+                    >
+
+                        <option value="">
+                            All Sections
+                        </option>
+
+                        {sections.map((section) => (
+                            <option
+                                key={section}
+                                value={section}
+                            >
+                                {section}
+                            </option>
+                        ))}
+
+                    </select>
+                </div>
+            );
+        };
     return {
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
         reportWrapperItems: {
-            InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel
+            ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel
         },
         exportToExcel,
         handleSort,
