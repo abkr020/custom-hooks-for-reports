@@ -5,7 +5,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [limit, setLimit] = useState(2);
+    const [limit, setLimit] = useState(6);
     const [skip, setSkip] = useState(0); // 👈 pagination
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("");
@@ -18,18 +18,24 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             setError(null);
 
             try {
-                let url = "";
+                const params = new URLSearchParams({
+                    limit,
+                    skip,
+                });
 
-                // ✅ SWITCH ENDPOINT BASED ON SEARCH
+                // ✅ add search only if exists
                 if (search.trim()) {
-                    url = `${baseUrl}/search?q=${search}&limit=${limit}&skip=${skip}`;
-                } else {
-                    url = `${baseUrl}?limit=${limit}&skip=${skip}`;
+                    params.append("search", search);
                 }
+
                 // ✅ add sorting
                 if (sortBy) {
-                    url += `&sortBy=${sortBy}&order=${sortOrder}`;
+                    params.append("sortBy", sortBy);
+                    params.append("order", sortOrder);
                 }
+
+                const url = `${baseUrl}?${params.toString()}`;
+
                 const res = await fetch(url);
 
                 if (!res.ok) {
@@ -46,18 +52,24 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
         };
 
         fetchData();
-    }, [baseUrl, limit, skip, search,sortOrder,sortBy]);
+    }, [baseUrl, limit, skip, search, sortOrder, sortBy]);
 
     const exportToExcel = async () => {
         try {
-            let url = "";
+            const params = new URLSearchParams();
 
-            // 🔥 ignore pagination
+            params.append("limit", 0);
+
             if (search.trim()) {
-                url = `${baseUrl}/search?q=${search}&limit=0`;
-            } else {
-                url = `${baseUrl}?limit=0`;
+                params.append("search", search);
             }
+
+            if (sortBy) {
+                params.append("sortBy", sortBy);
+                params.append("order", sortOrder);
+            }
+
+            const url = `${baseUrl}?${params.toString()}`;
 
             const res = await fetch(url);
             const result = await res.json();
