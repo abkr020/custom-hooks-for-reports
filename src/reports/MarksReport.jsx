@@ -13,6 +13,32 @@ export const marksTableColumns = [
         header: "Student ID",
         accessor: "student_id",
     },
+    {
+        header: "Student Name",
+        children: [
+            {
+                header: "First Name",
+                accessor: "name.first_name",
+            },
+            {
+                header: "Last Name",
+                accessor: "name.last_name",
+            },
+        ],
+    },
+    {
+        header: "Class Info",
+        children: [
+            {
+                header: "Class",
+                accessor: "classInfo.class",
+            },
+            {
+                header: "Section",
+                accessor: "classInfo.section",
+            },
+        ],
+    },
 
     {
         header: "Marks",
