@@ -33,7 +33,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             try {
 
                 const res = await fetch(
-                    "http://localhost:8080/api/reports/students/classes"
+                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/classes`
                 );
 
                 const result = await res.json();
@@ -72,7 +72,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             try {
 
                 const res = await fetch(
-                    `http://localhost:8080/api/reports/students/classes/${selectedClass}/sections`
+                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/classes/${selectedClass}/sections`
                 );
 
                 const result = await res.json();
