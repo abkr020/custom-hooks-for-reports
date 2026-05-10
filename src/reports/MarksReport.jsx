@@ -94,7 +94,7 @@ const MarksReport = () => {
                 >
                 <CustomTable
                     columns={marksTableColumns}
-                    data={data?.marks}
+                    data={data?.data}
                     loading={loading}
                     handleSort={handleSort}
                     sortBy={sortBy}

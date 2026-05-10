@@ -25,6 +25,8 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
 
     const [selectedClasses, setSelectedClasses] = useState([]);
     const [selectedSections, setSelectedSections] = useState([]);
+
+    const [downloadMode, setDownloadMode] = useState("filtered");
     // ==============================
     // FETCH UNIQUE CLASSES
     // ==============================
@@ -74,7 +76,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             try {
 
                 const params =
-                    new URLSearchParams({classes:selectedClasses.join(","),});
+                    new URLSearchParams({ classes: selectedClasses.join(","), });
 
                 const res = await fetch(
                     `${import.meta.env.VITE_BACKEND_URL}/reports/students/sections?${params}`
@@ -186,7 +188,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             const res = await fetch(url);
             const result = await res.json();
 
-            const rows = result.users || result.products || result;
+            const rows = result.data || result.users || result.products || result;
 
             // 🔥 reuse table structure
             const leafColumns = getLeafColumns(columns);
@@ -222,6 +224,115 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             window.URL.revokeObjectURL(urlBlob);
         } catch (err) {
             console.error("Export failed", err);
+        }
+    };
+    const handleDownload = async (mode = "filtered") => {
+
+        try {
+
+            const params = new URLSearchParams();
+
+            // always fetch everything if "all"
+            if (mode === "all") {
+                // params.append("limit", 0);
+            } else {
+                params.append("limit", limit);
+                params.append("skip", skip);
+            }
+
+            // apply filters only for filtered mode
+            if (mode === "filtered") {
+
+                if (search.trim()) {
+                    params.append("search", search);
+                }
+
+                if (sortBy) {
+                    params.append("sortBy", sortBy);
+                    params.append("order", sortOrder);
+                }
+
+                if (selectedClass) {
+                    params.append("class", selectedClass);
+                }
+
+                if (selectedSection) {
+                    params.append("section", selectedSection);
+                }
+
+                if (selectedClasses.length) {
+                    params.append("classes", selectedClasses.join(","));
+                }
+
+                if (selectedSections.length) {
+                    params.append("sections", selectedSections.join(","));
+                }
+            }
+
+            const url = `${baseUrl}?${params.toString()}`;
+
+            const res = await fetch(url);
+            const result = await res.json();
+
+            const rows =
+                result.data ||
+                result.users ||
+                result.products ||
+                result.marks ||
+                result;
+
+            const leafColumns = getLeafColumns(columns);
+
+            const headers = leafColumns?.map(
+                (col) => col.header
+            );
+
+            const csvRows = [
+                headers.join(","),
+                ...rows?.map((row) =>
+                    leafColumns
+                        .map((col) => {
+                            const value =
+                                col.accessor
+                                    ? getValue(row, col.accessor)
+                                    : col.render
+                                        ? col.render(row)
+                                        : "";
+
+                            return JSON.stringify(
+                                value ?? ""
+                            );
+                        })
+                        .join(",")
+                ),
+            ];
+
+            const csv =
+                csvRows.join("\n");
+
+            const blob =
+                new Blob([csv], {
+                    type: "text/csv",
+                });
+
+            const urlBlob =
+                window.URL.createObjectURL(blob);
+
+            const a =
+                document.createElement("a");
+
+            a.href = urlBlob;
+            a.download =
+                mode === "all"
+                    ? "report-all.csv"
+                    : "report-filtered.csv";
+
+            a.click();
+
+            window.URL.revokeObjectURL(urlBlob);
+
+        } catch (err) {
+            console.error("Download failed", err);
         }
     };
     const handleSort = (column) => {
@@ -395,10 +506,74 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
                 </div>
             );
         };
+    const DownloadModeSelectComponent = () => {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "stretch",
+                    margin: "10px 0",
+                    border: "1px solid #444",
+                    borderRadius: "6px",
+                    // overflow: "hidden",
+                    // width: "fit-content",
+                }}
+            >
+
+                {/* Dropdown */}
+                <select
+                    value={downloadMode}
+                    onChange={(e) =>
+                        setDownloadMode(e.target.value)
+                    }
+                    style={{
+                        background: "#1e1e1e",
+                        color: "#fff",
+                        border: "none",
+                        padding: "8px 10px",
+                        outline: "none",
+                    }}
+                >
+                    <option value="filtered">
+                        With Filters
+                    </option>
+
+                    <option value="all">
+                        All Data
+                    </option>
+                </select>
+
+                {/* Divider */}
+                <div
+                    style={{
+                        width: "1px",
+                        background: "#444",
+                    }}
+                />
+
+                {/* Button */}
+                <button
+                    onClick={() =>
+                        handleDownload(downloadMode)
+                    }
+                    style={{
+                        background: "#2b2b2b",
+                        color: "#fff",
+                        border: "none",
+                        // padding: "8px 12px",
+                        cursor: "pointer",
+                    }}
+                >
+                    Download
+                </button>
+
+            </div>
+        );
+    };
     return {
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
         reportWrapperItems: {
-            ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel
+            ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel, DownloadModeSelectComponent
         },
         exportToExcel,
         handleSort,

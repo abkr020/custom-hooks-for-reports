@@ -102,14 +102,14 @@ const MultiSelectDropdown = ({
             tabIndex={0}
             onKeyDown={handleKeyDown}
             style={{
-                width: "260px",
+                // width: "260px",
                 position: "relative",
                 color: "#e5e5e5",
                 fontFamily: "sans-serif",
-                display:"flex",
-                justifyContent:"center",
-                alignItems:"center",
-                gap:"1rem"
+                // display:"flex",
+                // justifyContent:"center",
+                // alignItems:"center",
+                // gap:"1rem"
 
             }}
         >

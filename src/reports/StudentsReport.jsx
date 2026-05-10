@@ -91,7 +91,7 @@ const StudentsReport = () => {
                 >
                 <CustomTable
                     columns={studentTableColumns}
-                    data={data?.students}
+                    data={data?.data}
                     loading={loading}
                     handleSort={handleSort}
                     sortBy={sortBy}

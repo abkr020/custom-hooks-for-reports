@@ -17,10 +17,11 @@ const ReportWrapper = ({
         {reportWrapperItems?.SectionFilterComponent?.()}
         {reportWrapperItems?.InpurLimitComponent?.()}
         {reportWrapperItems?.RenderSearchInputComponent?.()}
+        {reportWrapperItems?.DownloadModeSelectComponent?.()}
            {/* ✅ EXPORT BUTTON */}
-        <button onClick={reportWrapperItems?.exportToExcel} >
+        {/* <button onClick={reportWrapperItems?.exportToExcel} >
           Download Excel
-        </button>
+        </button> */}
       </div>
 
       {/* LOADING */}
