@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getLeafColumns, getValue } from "../components/CustomTable";
+import MultiSelectDropdown from "../components/MultiSelectDropdown";
 
 const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     const [data, setData] = useState(null);
@@ -22,7 +23,8 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
 
     const [selectedSection, setSelectedSection] = useState("");
 
-
+    const [selectedClasses, setSelectedClasses] = useState([]);
+    const [selectedSections, setSelectedSections] = useState([]);
     // ==============================
     // FETCH UNIQUE CLASSES
     // ==============================
@@ -59,10 +61,10 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     // ==============================
     useEffect(() => {
 
-        if (!selectedClass) {
+        if (!selectedClasses.length) {
 
             setSections([]);
-            setSelectedSection("");
+            setSelectedSections([]);
 
             return;
         }
@@ -71,13 +73,19 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
 
             try {
 
+                const params =
+                    new URLSearchParams({classes:selectedClasses.join(","),});
+
                 const res = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/classes/${selectedClass}/sections`
+                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/sections?${params}`
                 );
 
-                const result = await res.json();
+                const result =
+                    await res.json();
 
-                setSections(result.sections || []);
+                setSections(
+                    result.sections || []
+                );
 
             } catch (err) {
 
@@ -90,9 +98,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
 
         fetchSections();
 
-    }, [selectedClass]);
-
-
+    }, [selectedClasses]);
 
     useEffect(() => {
         if (!baseUrl) return;
@@ -126,6 +132,13 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
                 if (selectedSection) {
                     params.append("section", selectedSection);
                 }
+                if (selectedClasses.length) {
+                    params.append("classes", selectedClasses.join(","));
+                }
+
+                if (selectedSections.length) {
+                    params.append("sections", selectedSections.join(","));
+                }
 
                 const url = `${baseUrl}?${params.toString()}`;
 
@@ -145,7 +158,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
         };
 
         fetchData();
-    }, [baseUrl, limit, skip, search, sortOrder, sortBy, selectedClass, selectedSection,]);
+    }, [baseUrl, limit, skip, search, sortOrder, sortBy, selectedClass, selectedSection, selectedClasses, selectedSections]);
 
     const exportToExcel = async () => {
         try {
@@ -284,7 +297,14 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     // CLASS FILTER COMPONENT
     // ==============================
     const ClassFilterComponent = () => {
-
+        return (
+            <MultiSelectDropdown
+                label="Classes"
+                options={classes}
+                selected={selectedClasses}
+                setSelected={setSelectedClasses}
+            />
+        )
         return (
             <div>
 
@@ -330,7 +350,14 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     // ==============================
     const SectionFilterComponent =
         () => {
-
+            return (
+                <MultiSelectDropdown
+                    label="Sections"
+                    options={sections}
+                    selected={selectedSections}
+                    setSelected={setSelectedSections}
+                />
+            )
             return (
                 <div>
 
