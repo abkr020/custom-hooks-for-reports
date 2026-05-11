@@ -7,21 +7,21 @@ const ReportWrapper = ({
   error,
   children,
 }) => {
+  const filterComponents =
+    reportWrapperItems?.filters || [];
   return (
     <div style={{ border: "2px solid #333", padding: "10px" }}>
       <h2>{title}</h2>
 
       {/* FILTERS SECTION */}
-      <div style={{ marginBottom: "15px" , display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem"}}>
-        {reportWrapperItems?.ClassFilterComponent?.()}
-        {reportWrapperItems?.SectionFilterComponent?.()}
-        {reportWrapperItems?.InpurLimitComponent?.()}
-        {reportWrapperItems?.RenderSearchInputComponent?.()}
-        {reportWrapperItems?.DownloadModeSelectComponent?.()}
-           {/* ✅ EXPORT BUTTON */}
-        {/* <button onClick={reportWrapperItems?.exportToExcel} >
-          Download Excel
-        </button> */}
+      <div style={{ marginBottom: "15px", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
+        {filterComponents.map(
+          (Component, index) => (
+            <React.Fragment key={index}>
+              {Component?.()}
+            </React.Fragment>
+          )
+        )}
       </div>
 
       {/* LOADING */}

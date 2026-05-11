@@ -573,7 +573,12 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     return {
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
         reportWrapperItems: {
-            ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent, exportToExcel, DownloadModeSelectComponent
+
+            filters: [ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, DownloadModeSelectComponent,],
+
+            PaginationComponent,
+
+            exportToExcel,
         },
         exportToExcel,
         handleSort,
