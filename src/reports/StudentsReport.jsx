@@ -77,6 +77,27 @@ const StudentsReport = () => {
     } = useReportFetchWithFilter({
         baseUrl: studentsUrl,
         columns: studentTableColumns,
+        filters: [
+            {
+                key: "country",
+                label: "Country",
+                type: "select",
+                endpoint: "/reports/students/countries"
+            },
+//                {
+//       key: "section",
+//       label: "Section",
+//       type: "multi-select",
+//       endpoint: "/reports/students/sections",
+//       dependsOn: "class"
+//    },
+            {
+                key: "gender",
+                label: "Gender",
+                type: "select",
+                options: ["Male", "Female"]
+            }
+        ]
     });
 
     console.log("students data", data);
@@ -88,7 +109,7 @@ const StudentsReport = () => {
                 reportWrapperItems={reportWrapperItems}
                 // loading={loading}
                 error={error}
-                >
+            >
                 <CustomTable
                     columns={studentTableColumns}
                     data={data?.data}

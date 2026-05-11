@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { getLeafColumns, getValue } from "../components/CustomTable";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
+import DynamicFilter from "../components/DynamicFilter";
 
-const useReportFetchWithFilter = ({ baseUrl, columns }) => {
+const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
+}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -27,6 +29,64 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     const [selectedSections, setSelectedSections] = useState([]);
 
     const [downloadMode, setDownloadMode] = useState("filtered");
+
+    // ==============================
+    // filter states
+    // ==============================
+    const [filtersState, setFiltersState] = useState({});
+    const [filterOptions, setFilterOptions] = useState({});
+
+    useEffect(() => {
+
+        const fetchFilterOptions = async () => {
+
+            try {
+
+                const optionsData = {};
+
+                for (const filter of filters) {
+
+                    // static options
+                    if (filter.options) {
+
+                        optionsData[filter.key] =
+                            filter.options;
+
+                        continue;
+                    }
+
+                    // dynamic options
+                    if (filter.endpoint) {
+
+                        const res = await fetch(
+                            `${import.meta.env.VITE_BACKEND_URL}${filter.endpoint}`
+                        );
+
+                        const result =
+                            await res.json();
+
+                        optionsData[filter.key] =
+                            result[filter.key] ||
+                            result.options ||
+                            [];
+                    }
+                }
+
+                setFilterOptions(optionsData);
+
+            } catch (err) {
+
+                console.error(
+                    "Failed to fetch filter options",
+                    err
+                );
+            }
+        };
+
+        fetchFilterOptions();
+
+    }, []);
+
     // ==============================
     // FETCH UNIQUE CLASSES
     // ==============================
@@ -142,6 +202,19 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
                     params.append("sections", selectedSections.join(","));
                 }
 
+                Object.entries(filtersState).forEach(([key, value]) => {
+
+    // array values
+    if (Array.isArray(value) && value.length) {
+        params.append(key, value.join(","));
+    }
+
+    // single values
+    else if (value) {
+        params.append(key, value);
+    }
+});
+
                 const url = `${baseUrl}?${params.toString()}`;
 
                 const res = await fetch(url);
@@ -160,7 +233,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
         };
 
         fetchData();
-    }, [baseUrl, limit, skip, search, sortOrder, sortBy, selectedClass, selectedSection, selectedClasses, selectedSections]);
+    }, [baseUrl, limit, skip, search, sortOrder, sortBy, selectedClass, selectedSection, selectedClasses, selectedSections, filtersState,]);
 
     const exportToExcel = async () => {
         try {
@@ -459,53 +532,52 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
     // ==============================
     // SECTION FILTER COMPONENT
     // ==============================
-    const SectionFilterComponent =
-        () => {
-            return (
-                <MultiSelectDropdown
-                    label="Sections"
-                    options={sections}
-                    selected={selectedSections}
-                    setSelected={setSelectedSections}
-                />
-            )
-            return (
-                <div>
+    const SectionFilterComponent = () => {
+        return (
+            <MultiSelectDropdown
+                label="Sections"
+                options={sections}
+                selected={selectedSections}
+                setSelected={setSelectedSections}
+            />
+        )
+        return (
+            <div>
 
-                    <label>
-                        Section:
-                    </label>
+                <label>
+                    Section:
+                </label>
 
-                    <select
-                        value={selectedSection}
-                        disabled={!selectedClass}
-                        onChange={(e) => {
+                <select
+                    value={selectedSection}
+                    disabled={!selectedClass}
+                    onChange={(e) => {
 
-                            setSelectedSection(
-                                e.target.value
-                            );
+                        setSelectedSection(
+                            e.target.value
+                        );
 
-                            setSkip(0);
-                        }}
-                    >
+                        setSkip(0);
+                    }}
+                >
 
-                        <option value="">
-                            All Sections
+                    <option value="">
+                        All Sections
+                    </option>
+
+                    {sections.map((section) => (
+                        <option
+                            key={section}
+                            value={section}
+                        >
+                            {section}
                         </option>
+                    ))}
 
-                        {sections.map((section) => (
-                            <option
-                                key={section}
-                                value={section}
-                            >
-                                {section}
-                            </option>
-                        ))}
-
-                    </select>
-                </div>
-            );
-        };
+                </select>
+            </div>
+        );
+    };
     const DownloadModeSelectComponent = () => {
         return (
             <div
@@ -570,11 +642,46 @@ const useReportFetchWithFilter = ({ baseUrl, columns }) => {
             </div>
         );
     };
+    const DynamicFiltersComponent = () => {
+
+        return (
+            <>
+                {filters.map((filter) => (
+
+                    <DynamicFilter
+                        key={filter.key}
+                        filter={filter}
+                        value={
+                            filtersState[filter.key] ||
+                            (
+                                filter.type === "multi-select"
+                                    ? []
+                                    : ""
+                            )
+                        }
+                        options={
+                            filterOptions[filter.key] || []
+                        }
+                        onChange={(value) => {
+
+                            setFiltersState((prev) => ({
+                                ...prev,
+                                [filter.key]: value,
+                            }));
+
+                            setSkip(0);
+                        }}
+                    />
+
+                ))}
+            </>
+        );
+    };
     return {
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
         reportWrapperItems: {
 
-            filters: [ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, DownloadModeSelectComponent,],
+            filters: [DynamicFiltersComponent,ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, DownloadModeSelectComponent,],
 
             PaginationComponent,
 
