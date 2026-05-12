@@ -204,16 +204,16 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
 
                 Object.entries(filtersState).forEach(([key, value]) => {
 
-    // array values
-    if (Array.isArray(value) && value.length) {
-        params.append(key, value.join(","));
-    }
+                    // array values
+                    if (Array.isArray(value) && value.length) {
+                        params.append(key, value.join(","));
+                    }
 
-    // single values
-    else if (value) {
-        params.append(key, value);
-    }
-});
+                    // single values
+                    else if (value) {
+                        params.append(key, value);
+                    }
+                });
 
                 const url = `${baseUrl}?${params.toString()}`;
 
@@ -662,15 +662,46 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
                         options={
                             filterOptions[filter.key] || []
                         }
-                        onChange={(value) => {
+                        // onChange={(value) => {
 
-                            setFiltersState((prev) => ({
-                                ...prev,
-                                [filter.key]: value,
-                            }));
+                        //     setFiltersState((prev) => ({
+                        //         ...prev,
+                        //         [filter.key]: value,
+                        //     }));
+
+                        //     setSkip(0);
+                        // }}
+                        onChange={(value) => {
+                            setFiltersState((prev) => {
+                                const resolvedValue =
+                                    typeof value === "function"
+                                        ? value(prev[filter.key] || [])
+                                        : value;
+
+                                return {
+                                    ...prev,
+                                    [filter.key]: resolvedValue,
+                                };
+                            });
 
                             setSkip(0);
                         }}
+                    // onChange={(value) => {
+                    //     const safeValue = typeof value === "function"
+                    //         ? value([])
+                    //         : value;
+
+                    //     setFiltersState((prev) => ({
+                    //         ...prev,
+                    //         [filter.key]: Array.isArray(safeValue)
+                    //             ? safeValue
+                    //             : safeValue
+                    //                 ? [safeValue]
+                    //                 : [],
+                    //     }));
+
+                    //     setSkip(0);
+                    // }}
                     />
 
                 ))}
@@ -681,7 +712,7 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
         data, loading, error, InpurLimitComponent, RenderSearchInputComponent, PaginationComponent,
         reportWrapperItems: {
 
-            filters: [DynamicFiltersComponent,ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, DownloadModeSelectComponent,],
+            filters: [DynamicFiltersComponent, ClassFilterComponent, SectionFilterComponent, InpurLimitComponent, RenderSearchInputComponent, DownloadModeSelectComponent,],
 
             PaginationComponent,
 

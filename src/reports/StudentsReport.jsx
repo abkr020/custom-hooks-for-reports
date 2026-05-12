@@ -81,7 +81,7 @@ const StudentsReport = () => {
             {
                 key: "country",
                 label: "Country",
-                type: "select",
+                type: "multi-select",
                 endpoint: "/reports/students/countries"
             },
 //                {
