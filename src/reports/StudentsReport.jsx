@@ -84,13 +84,13 @@ const StudentsReport = () => {
                 type: "multi-select",
                 endpoint: "/reports/students/countries"
             },
-//                {
-//       key: "section",
-//       label: "Section",
-//       type: "multi-select",
-//       endpoint: "/reports/students/sections",
-//       dependsOn: "class"
-//    },
+            // {
+            //     key: "city",
+            //     label: "City",
+            //     type: "multi-select",
+            //     endpoint: "/reports/students/cities",
+            //     dependsOn: "country"
+            // },
             {
                 key: "gender",
                 label: "Gender",

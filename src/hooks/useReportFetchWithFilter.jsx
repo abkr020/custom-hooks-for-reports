@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { getLeafColumns, getValue } from "../components/CustomTable";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
 import DynamicFilter from "../components/DynamicFilter";
+import LimitDropdown from "./reportFetchHookComponents/LimitDropdown";
 
-const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
+const useReportFetchWithFilter = ({ baseUrl, columns, filters = [], limit: initialLimit = 6, // 👈 rename + default fallback
 }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [limit, setLimit] = useState(6);
+    const [limit, setLimit] = useState(initialLimit);
     const [skip, setSkip] = useState(0); // 👈 pagination
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("");
@@ -35,76 +36,80 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
     // ==============================
     const [filtersState, setFiltersState] = useState({});
     const [filterOptions, setFilterOptions] = useState({});
-
+    const country = filtersState.country;
     useEffect(() => {
-
         const fetchFilterOptions = async () => {
-
             try {
-
                 const optionsData = {};
 
                 for (const filter of filters) {
+                    let url = `${import.meta.env.VITE_BACKEND_URL}${filter.endpoint}`;
 
-                    // static options
-                    if (filter.options) {
+                    // ✅ HANDLE DEPENDENCY
+                    if (filter.dependsOn) {
+                        const depValue = filtersState[filter.dependsOn];
 
-                        optionsData[filter.key] =
-                            filter.options;
+                        const normalized =
+                            Array.isArray(depValue)
+                                ? depValue.join(",")
+                                : depValue;
 
-                        continue;
+                        if (!normalized || normalized.length === 0) {
+                            optionsData[filter.key] = [];
+                            continue;
+                        }
+
+                        url += `?${filter.dependsOn}=${normalized}`;
                     }
 
-                    // dynamic options
-                    if (filter.endpoint) {
+                    const res = await fetch(url);
+                    const result = await res.json();
 
-                        const res = await fetch(
-                            `${import.meta.env.VITE_BACKEND_URL}${filter.endpoint}`
-                        );
-
-                        const result =
-                            await res.json();
-
-                        optionsData[filter.key] =
-                            result[filter.key] ||
-                            result.options ||
-                            [];
-                    }
+                    optionsData[filter.key] =
+                        result.options || [];
                 }
 
                 setFilterOptions(optionsData);
 
             } catch (err) {
-
-                console.error(
-                    "Failed to fetch filter options",
-                    err
-                );
+                console.error("Failed to fetch filter options", err);
             }
         };
 
         fetchFilterOptions();
 
     }, []);
+    // }, [country, filters]);
 
     // ==============================
     // FETCH UNIQUE CLASSES
     // ==============================
     useEffect(() => {
 
+        const controller = new AbortController();
+
         const fetchClasses = async () => {
 
             try {
 
                 const res = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/classes`
+                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/classes`,
+                    {
+                        signal: controller.signal,
+                    }
                 );
 
                 const result = await res.json();
 
-                setClasses(result.classes || []);
+                if (!controller.signal.aborted) {
+                    setClasses(result.classes || []);
+                }
 
             } catch (err) {
+
+                if (err.name === "AbortError") {
+                    return;
+                }
 
                 console.error(
                     "Failed to fetch classes",
@@ -114,6 +119,10 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
         };
 
         fetchClasses();
+
+        return () => {
+            controller.abort();
+        };
 
     }, []);
 
@@ -131,6 +140,8 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
             return;
         }
 
+        const controller = new AbortController();
+
         const fetchSections = async () => {
 
             try {
@@ -139,17 +150,26 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
                     new URLSearchParams({ classes: selectedClasses.join(","), });
 
                 const res = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/sections?${params}`
+                    `${import.meta.env.VITE_BACKEND_URL}/reports/students/sections?${params}`,
+                    {
+                        signal: controller.signal,
+                    }
                 );
 
                 const result =
                     await res.json();
 
-                setSections(
-                    result.sections || []
-                );
+                if (!controller.signal.aborted) {
+                    setSections(
+                        result.sections || []
+                    );
+                }
 
             } catch (err) {
+
+                if (err.name === "AbortError") {
+                    return;
+                }
 
                 console.error(
                     "Failed to fetch sections",
@@ -160,79 +180,183 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
 
         fetchSections();
 
+        return () => {
+            controller.abort();
+        };
+
     }, [selectedClasses]);
 
+    const buildQueryParams = ({
+        includePagination = true,
+        includeFilters = true,
+    } = {}) => {
+
+        const params = new URLSearchParams();
+
+        // pagination
+        if (includePagination) {
+            params.append("limit", String(limit));
+            params.append("skip", String(skip));
+        }
+
+        // search
+        if (includeFilters && search.trim()) {
+            params.append("search", search);
+        }
+
+        // sorting
+        if (includeFilters && sortBy) {
+            params.append("sortBy", sortBy);
+            params.append("order", sortOrder);
+        }
+
+        // ! single class/section
+        // if (includeFilters && selectedClass) {
+        //     params.append("class", selectedClass);
+        // }
+
+        // if (includeFilters && selectedSection) {
+        //     params.append("section", selectedSection);
+        // }
+
+        // ! multi classes/sections
+        if (includeFilters && selectedClasses.length) {
+            params.append(
+                "classes",
+                selectedClasses.join(",")
+            );
+        }
+
+        if (includeFilters && selectedSections.length) {
+            params.append(
+                "sections",
+                selectedSections.join(",")
+            );
+        }
+
+        // dynamic filters
+        if (includeFilters) {
+
+            Object.entries(filtersState).forEach(
+                ([key, value]) => {
+
+                    if (
+                        Array.isArray(value) &&
+                        value.length
+                    ) {
+                        params.append(
+                            key,
+                            value.join(",")
+                        );
+                    }
+                    else if (value) {
+                        params.append(key, value);
+                    }
+                }
+            );
+        }
+
+        return params;
+    };
+    // ==============================
+    // FETCH SECTIONS BY CLASS
+    // ==============================
     useEffect(() => {
         if (!baseUrl) return;
+        const controller = new AbortController();
 
         const fetchData = async () => {
             setLoading(true);
             setError(null);
 
             try {
-                const params = new URLSearchParams({
-                    limit,
-                    skip,
+                // const params = new URLSearchParams({
+                //     limit,
+                //     skip,
+                // });
+
+                // // ✅ add search only if exists
+                // if (search.trim()) {
+                //     params.append("search", search);
+                // }
+
+                // // ✅ add sorting
+                // if (sortBy) {
+                //     params.append("sortBy", sortBy);
+                //     params.append("order", sortOrder);
+                // }
+                // // ✅ class filter
+                // if (selectedClass) {
+                //     params.append("class", selectedClass);
+                // }
+
+                // // ✅ section filter
+                // if (selectedSection) {
+                //     params.append("section", selectedSection);
+                // }
+                // if (selectedClasses.length) {
+                //     params.append("classes", selectedClasses.join(","));
+                // }
+
+                // if (selectedSections.length) {
+                //     params.append("sections", selectedSections.join(","));
+                // }
+
+                // Object.entries(filtersState).forEach(([key, value]) => {
+
+                //     // array values
+                //     if (Array.isArray(value) && value.length) {
+                //         params.append(key, value.join(","));
+                //     }
+
+                //     // single values
+                //     else if (value) {
+                //         params.append(key, value);
+                //     }
+                // });
+
+                // const url = `${baseUrl}?${params.toString()}`;
+                const params = buildQueryParams();
+
+                const url =
+                    `${baseUrl}?${params.toString()}`;
+                const res = await fetch(url, {
+                    signal: controller.signal,
+
                 });
-
-                // ✅ add search only if exists
-                if (search.trim()) {
-                    params.append("search", search);
-                }
-
-                // ✅ add sorting
-                if (sortBy) {
-                    params.append("sortBy", sortBy);
-                    params.append("order", sortOrder);
-                }
-                // ✅ class filter
-                if (selectedClass) {
-                    params.append("class", selectedClass);
-                }
-
-                // ✅ section filter
-                if (selectedSection) {
-                    params.append("section", selectedSection);
-                }
-                if (selectedClasses.length) {
-                    params.append("classes", selectedClasses.join(","));
-                }
-
-                if (selectedSections.length) {
-                    params.append("sections", selectedSections.join(","));
-                }
-
-                Object.entries(filtersState).forEach(([key, value]) => {
-
-                    // array values
-                    if (Array.isArray(value) && value.length) {
-                        params.append(key, value.join(","));
-                    }
-
-                    // single values
-                    else if (value) {
-                        params.append(key, value);
-                    }
-                });
-
-                const url = `${baseUrl}?${params.toString()}`;
-
-                const res = await fetch(url);
 
                 if (!res.ok) {
                     throw new Error("Failed to fetch data");
                 }
 
                 const result = await res.json();
-                setData(result);
+
+                // don't update if aborted
+                if (!controller.signal.aborted) {
+                    setData(result);
+                }
             } catch (err) {
+                // ignore abort errors
+                if (err.name === "AbortError") {
+                    console.log("Request aborted");
+                    return;
+                }
                 setError(err.message || "Something went wrong");
+                setData({});
+                // setError("hi Something went wrong");
             } finally {
-                setLoading(false);
+
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchData();
+        // cleanup
+        return () => {
+            controller.abort();
+        };
     }, [baseUrl, limit, skip, search, sortOrder, sortBy, selectedClass, selectedSection, selectedClasses, selectedSections, filtersState,]);
 
     const exportToExcel = async () => {
@@ -425,21 +549,11 @@ const useReportFetchWithFilter = ({ baseUrl, columns, filters = [],
     // ✅ Renderable component inside hook
     const InpurLimitComponent = () => {
         return (
-            <div>
-                {/* LIMIT CONTROL */}
-                <div >
-                    <label>Limit: </label>
-                    <input
-                        type="number"
-                        value={limit}
-                        min={1}
-                        max={100}
-                        onChange={(e) => setLimit(Number(e.target.value))}
-                    />
-                </div>
-
-            </div>
-        );
+            <LimitDropdown
+                value={limit}
+                onChange={(val) => setLimit(val)}
+            />
+        )
     };
     // ✅ PAGINATION CONTROLS
     const PaginationComponent = () => (
